@@ -99,7 +99,7 @@ func main() {
 				return
 			}
 		}
-		matches := r.FindAllStringSubmatch(event.Message(), -1)
+		matches := r.FindAllStringSubmatch(event.Message(), 1)
 		for _, match := range matches {
 			if len(match) < 2 {
 				continue
@@ -127,7 +127,7 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			ircproj.Privmsgf(event.Arguments[0], "#%v %v %v", m["number"].(float64), m["title"].(string), m["html_url"].(string))
+			ircproj.Privmsgf(event.Arguments[0], "[\002#%v\002] %v %v", m["number"].(float64), m["title"].(string), m["html_url"].(string))
 		}
 	})
 
