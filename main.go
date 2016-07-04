@@ -26,6 +26,7 @@ type Config struct {
 		Channels      []string `json:"channels"`
 		Host          string   `json:"host"`
 		Password      string   `json:"password"`
+		Ignore        []string `json:"ignore"`
 	} `json:"irc"`
 	Github struct {
 		Token string `json:"token"`
@@ -93,6 +94,11 @@ func main() {
 
 	r := regexp.MustCompile(`#(\d+)`)
 	ircproj.AddCallback("PRIVMSG", func(event *irc.Event) {
+		for _, ignoreNick := range c.Irc.Ignore {
+			if event.Nick == ignoreNick || event.User == ignoreNick {
+				return
+			}
+		}
 		matches := r.FindAllStringSubmatch(event.Message(), -1)
 		for _, match := range matches {
 			if len(match) < 2 {
@@ -121,7 +127,7 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			ircproj.Noticef(event.Arguments[0], "#%v %v %v", m["number"].(float64), m["title"].(string), m["html_url"].(string))
+			ircproj.Privmsgf(event.Arguments[0], "#%v %v %v", m["number"].(float64), m["title"].(string), m["html_url"].(string))
 		}
 	})
 
