@@ -20,6 +20,8 @@ import (
 var config = flag.String("config", "", "configuration file")
 
 type Config struct {
+
+	// actual config
 	Irc struct {
 		Ssl           bool     `json:"ssl"`
 		SslVerifySkip bool     `json:"ssl_verify_skip"`
@@ -34,16 +36,25 @@ type Config struct {
 		Token    string   `json:"token"`
 		Projects []string `json:"projects"`
 	} `json:"github"`
+
+	// internal/caching stuff
+	ProjectsByRepoName map[string]string
 }
 
 func (c *Config) Load(filename string) error {
 	data, err := ioutil.ReadFile(filename)
+
+	// I/O error
 	if err != nil {
 		return err
 	}
+
+	// JSON error
 	if err := json.Unmarshal(data, &c); err != nil {
 		return err
 	}
+
+	// validate config
 
 	if c.Irc.Nickname == "" {
 		c.Irc.Nickname = "issuebot"
@@ -65,6 +76,10 @@ func (c *Config) Load(filename string) error {
 		if strings.IndexByte(proj, '/') == -1 {
 			return errors.New("projects must be in format 'owner/repo'")
 		}
+
+		// map repo names to owners
+		repo := strings.SplitN(proj, "/", 2)[1]
+		c.ProjectsByRepoName[strings.ToLower(repo)] = proj
 	}
 
 	return nil
@@ -72,7 +87,7 @@ func (c *Config) Load(filename string) error {
 
 func main() {
 	flag.Parse()
-	c := &Config{}
+	c := &Config{ProjectsByRepoName: make(map[string]string)}
 
 	if err := c.Load(*config); err != nil {
 		log.Fatal(err)
@@ -106,6 +121,16 @@ func main() {
 		matches := r.FindAllStringSubmatch(event.Message(), 1)
 		for _, match := range matches {
 			ownerRepo, issueN := match[1], match[2]
+
+			// no owner provided-- check config for owner
+			if strings.IndexByte(ownerRepo, '/') == -1 {
+				var ok bool
+				ownerRepo, ok = c.ProjectsByRepoName[strings.ToLower(ownerRepo)]
+				if !ok {
+					continue
+				}
+			}
+
 			if len(match) < 3 {
 				continue
 			}
