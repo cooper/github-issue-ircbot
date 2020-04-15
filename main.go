@@ -33,8 +33,9 @@ type Config struct {
 		Ignore        []string `json:"ignore"`
 	} `json:"irc"`
 	Github struct {
-		Token    string   `json:"token"`
-		Projects []string `json:"projects"`
+		Token        string   `json:"token"`
+		Projects     []string `json:"projects"`
+		DefaultOwner string   `json:"defaultowner"`
 	} `json:"github"`
 
 	// internal/caching stuff
@@ -127,7 +128,10 @@ func main() {
 				var ok bool
 				ownerRepo, ok = c.ProjectsByRepoName[strings.ToLower(ownerRepo)]
 				if !ok {
-					continue
+					if c.Github.DefaultOwner == "" {
+						continue
+					}
+					ownerRepo = c.Github.DefaultOwner + "/" + match[1]
 				}
 			}
 
