@@ -152,10 +152,12 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			q := u.Query()
-			q.Add("access_token", c.Github.Token)
-			u.RawQuery = q.Encode()
-			resp, err := http.Get(u.String())
+			req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+			if err != nil {
+				log.Println(err)
+			}
+			req.SetBasicAuth("token", c.Github.Token)
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				log.Println(err)
 				continue
