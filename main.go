@@ -33,6 +33,7 @@ type config struct {
 		Password      string   `json:"password"`
 		Ignore        []string `json:"ignore"`
 	} `json:"irc"`
+
 	Github struct {
 		Token        string   `json:"token"`
 		Projects     []string `json:"projects"`
@@ -69,10 +70,6 @@ func (c *config) load(filename string) error {
 
 	if c.Github.Token == "" {
 		return errors.New("token is required")
-	}
-
-	if len(c.Github.Projects) == 0 {
-		return errors.New("projects is required")
 	}
 
 	for _, proj := range c.Github.Projects {
