@@ -152,13 +152,14 @@ func main() {
 
 			// no owner provided-- check config for owner
 			if strings.IndexByte(ownerRepo, '/') == -1 {
-				var ok bool
-				ownerRepo, ok = c.ProjectsByRepoName[strings.ToLower(ownerRepo)]
-				if !ok {
+				found, ok := c.ProjectsByRepoName[strings.ToLower(ownerRepo)]
+				if ok {
+					ownerRepo = found
+				} else {
 					if c.Github.DefaultOwner == "" {
 						continue
 					}
-					ownerRepo = c.Github.DefaultOwner + "/" + match[1]
+					ownerRepo = c.Github.DefaultOwner + "/" + ownerRepo
 				}
 			}
 
@@ -185,7 +186,7 @@ func main() {
 
 			// HTTP error occurred
 			if !(200 <= resp.StatusCode && resp.StatusCode <= 299) {
-				log.Println(resp.Status)
+				log.Println(resp.Status, u)
 				continue
 			}
 
