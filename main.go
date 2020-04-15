@@ -113,7 +113,7 @@ func main() {
 		}
 	})
 
-	r := regexp.MustCompile(`([\w/]?)#(\d+)`)
+	r := regexp.MustCompile(`([\w/]+)?#(\d+)`)
 	ircproj.AddCallback("PRIVMSG", func(event *irc.Event) {
 		for _, ignoreNick := range c.Irc.Ignore {
 			if event.Nick == ignoreNick || event.User == ignoreNick {
@@ -147,6 +147,7 @@ func main() {
 			if len(match) < 3 {
 				continue
 			}
+
 			u, err := url.Parse(fmt.Sprintf("https://api.github.com/repos/%s/issues/%s", ownerRepo, issueN))
 			if err != nil {
 				log.Println(err)
