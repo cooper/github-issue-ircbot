@@ -91,7 +91,7 @@ func main() {
 
 	// config file option missing
 	if *conf == "" {
-		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "-config /path/to/config")
+		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "-config /path/to/config.json")
 		os.Exit(0)
 	}
 
