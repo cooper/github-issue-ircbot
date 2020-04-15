@@ -4,9 +4,10 @@
                 "port": "port for irc server",
                 "ssl": false,
                 "ssl_verify_skip": false,
-                "channels": [ "" ],
+                "channels": [ "#chan", "#another" ],
                 "password": "password for irc server",
-                "nickname": "issuebot"
+                "nickname": "issuebot",
+                "ignore": [ "spamuser" ]
         },
         "github": {
                 "token": "github auth token",

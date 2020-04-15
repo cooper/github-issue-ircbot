@@ -87,17 +87,20 @@ func (c *config) load(filename string) error {
 
 func main() {
 	flag.Parse()
+
+	// config file option missing
 	if *conf == "" {
 		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "-config /path/to/config")
 		os.Exit(0)
 	}
 
+	// load config
 	c := &config{ProjectsByRepoName: make(map[string]string)}
-
 	if err := c.load(*conf); err != nil {
 		log.Fatal(err)
 	}
 
+	// create IRC bot
 	ircproj := irc.IRC(c.Irc.Nickname, c.Irc.Nickname)
 	ircproj.UseTLS = c.Irc.Ssl
 	if c.Irc.SslVerifySkip {
@@ -105,26 +108,38 @@ func main() {
 	}
 	ircproj.Password = c.Irc.Password
 
+	// connect to IRC
 	err := ircproj.Connect(net.JoinHostPort(c.Irc.Host, c.Irc.Port))
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// autojoin
 	ircproj.AddCallback("001", func(event *irc.Event) {
 		for _, channel := range c.Irc.Channels {
 			ircproj.Join(channel)
 		}
 	})
 
+	// check messages for issues mentioned
 	r := regexp.MustCompile(`([\w/]+)?#(\d+)`)
 	ircproj.AddCallback("PRIVMSG", func(event *irc.Event) {
+
+		// check if user is ignored
 		for _, ignoreNick := range c.Irc.Ignore {
 			if event.Nick == ignoreNick || event.User == ignoreNick {
 				return
 			}
 		}
+
+		// search for every mention of an issue
 		matches := r.FindAllStringSubmatch(event.Message(), 1)
 		for _, match := range matches {
+
+			// extract parts
+			if len(match) < 3 {
+				continue
+			}
 			ownerRepo, issueN := match[1], match[2]
 
 			// only a number provided; try defaultrepo
@@ -147,35 +162,42 @@ func main() {
 				}
 			}
 
-			if len(match) < 3 {
-				continue
-			}
-
+			// validate URL
 			u, err := url.Parse(fmt.Sprintf("https://api.github.com/repos/%s/issues/%s", ownerRepo, issueN))
 			if err != nil {
 				log.Println(err)
 				continue
 			}
+
+			// create request with Authentication header
 			req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 			if err != nil {
 				log.Println(err)
 			}
 			req.SetBasicAuth("token", c.Github.Token)
+
+			// commit request
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
+
+			// HTTP error occurred
 			if !(200 <= resp.StatusCode && resp.StatusCode <= 299) {
 				log.Println(resp.Status)
 				continue
 			}
+
+			// decode response
 			defer resp.Body.Close()
 			m := make(map[string]interface{})
 			if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
 				log.Println(err)
 				continue
 			}
+
+			// reply
 			ircproj.Privmsgf(event.Arguments[0], "[\002#%v\002] %v %v", m["number"].(float64), m["title"].(string), m["html_url"].(string))
 		}
 	})
