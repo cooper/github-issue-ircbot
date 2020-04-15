@@ -6,7 +6,8 @@
                 "ssl_verify_skip": false,
                 "channels": [ "#chan", "#another" ],
                 "password": "password for irc server",
-                "nickname": "issuebot",
+                "nickname": "issues",
+                "realname": "I got issues",
                 "ignore": [ "spamuser" ]
         },
         "github": {

@@ -28,6 +28,7 @@ type config struct {
 		SslVerifySkip bool     `json:"ssl_verify_skip"`
 		Port          string   `json:"port"`
 		Nickname      string   `json:"nickname"`
+		Realname      string   `json:"realname"`
 		Channels      []string `json:"channels"`
 		Host          string   `json:"host"`
 		Password      string   `json:"password"`
@@ -61,7 +62,7 @@ func (c *config) load(filename string) error {
 	// validate config
 
 	if c.Irc.Nickname == "" {
-		c.Irc.Nickname = "issuebot"
+		c.Irc.Nickname = "issues"
 	}
 
 	if c.Irc.Host == "" {
@@ -102,6 +103,7 @@ func main() {
 
 	// create IRC bot
 	ircproj := irc.IRC(c.Irc.Nickname, c.Irc.Nickname)
+	ircproj.RealName = c.Irc.Realname
 	ircproj.UseTLS = c.Irc.Ssl
 	if c.Irc.SslVerifySkip {
 		ircproj.TLSConfig = &tls.Config{InsecureSkipVerify: true}
