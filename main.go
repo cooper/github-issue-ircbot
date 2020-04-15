@@ -37,8 +37,8 @@ type config struct {
 	Github struct {
 		Token        string   `json:"token"`
 		Projects     []string `json:"projects"`
-		DefaultOwner string   `json:"defaultowner"`
-		DefaultRepo  string   `json:"defaultrepo"`
+		DefaultOwner string   `json:"default_owner"`
+		DefaultRepo  string   `json:"default_repo"`
 	} `json:"github"`
 
 	// internal/caching stuff
