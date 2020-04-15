@@ -10,7 +10,9 @@
         },
         "github": {
                 "token": "github auth token",
-                "owner": "github repository owner",
-                "repos": "github repository name"
+                "projects": [
+                        "cooper/juno",
+                        "jlu5/PyLink"
+                ]
         }
 }

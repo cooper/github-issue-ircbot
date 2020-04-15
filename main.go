@@ -6,13 +6,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/thoj/go-ircevent"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
+
+	irc "github.com/thoj/go-ircevent"
 )
 
 var config = flag.String("config", "", "configuration file")
@@ -29,9 +31,8 @@ type Config struct {
 		Ignore        []string `json:"ignore"`
 	} `json:"irc"`
 	Github struct {
-		Token string `json:"token"`
-		Owner string `json:"owner"`
-		Repos string `json:"repos"`
+		Token    string   `json:"token"`
+		Projects []string `json:"projects"`
 	} `json:"github"`
 }
 
@@ -49,19 +50,21 @@ func (c *Config) Load(filename string) error {
 	}
 
 	if c.Irc.Host == "" {
-		return errors.New("host is required.")
+		return errors.New("host is required")
 	}
 
 	if c.Github.Token == "" {
-		return errors.New("token is required.")
+		return errors.New("token is required")
 	}
 
-	if c.Github.Owner == "" {
-		return errors.New("owner is required.")
+	if len(c.Github.Projects) == 0 {
+		return errors.New("projects is required")
 	}
 
-	if c.Github.Repos == "" {
-		return errors.New("repos is required.")
+	for _, proj := range c.Github.Projects {
+		if strings.IndexByte(proj, '/') == -1 {
+			return errors.New("projects must be in format 'owner/repo'")
+		}
 	}
 
 	return nil
@@ -70,6 +73,7 @@ func (c *Config) Load(filename string) error {
 func main() {
 	flag.Parse()
 	c := &Config{}
+
 	if err := c.Load(*config); err != nil {
 		log.Fatal(err)
 	}
@@ -104,7 +108,7 @@ func main() {
 			if len(match) < 2 {
 				continue
 			}
-			u, err := url.Parse(fmt.Sprintf("https://api.github.com/repos/%s/%s/issues/%s", c.Github.Owner, c.Github.Repos, match[1]))
+			u, err := url.Parse(fmt.Sprintf("https://api.github.com/repos/%s/issues/%s", "FIX", match[1]))
 			if err != nil {
 				log.Println(err)
 				continue
