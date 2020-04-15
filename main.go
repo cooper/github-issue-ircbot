@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -89,6 +90,11 @@ func (c *Config) Load(filename string) error {
 
 func main() {
 	flag.Parse()
+	if *config == "" {
+		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "-config /path/to/config")
+		os.Exit(0)
+	}
+
 	c := &Config{ProjectsByRepoName: make(map[string]string)}
 
 	if err := c.Load(*config); err != nil {
