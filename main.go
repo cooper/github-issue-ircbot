@@ -36,6 +36,7 @@ type Config struct {
 		Token        string   `json:"token"`
 		Projects     []string `json:"projects"`
 		DefaultOwner string   `json:"defaultowner"`
+		DefaultRepo  string   `json:"defaultrepo"`
 	} `json:"github"`
 
 	// internal/caching stuff
@@ -112,7 +113,7 @@ func main() {
 		}
 	})
 
-	r := regexp.MustCompile(`([\w/]+)#(\d+)`)
+	r := regexp.MustCompile(`([\w/]?)#(\d+)`)
 	ircproj.AddCallback("PRIVMSG", func(event *irc.Event) {
 		for _, ignoreNick := range c.Irc.Ignore {
 			if event.Nick == ignoreNick || event.User == ignoreNick {
@@ -122,6 +123,14 @@ func main() {
 		matches := r.FindAllStringSubmatch(event.Message(), 1)
 		for _, match := range matches {
 			ownerRepo, issueN := match[1], match[2]
+
+			// only a number provided; try defaultrepo
+			if ownerRepo == "" {
+				if c.Github.DefaultRepo == "" {
+					continue
+				}
+				ownerRepo = c.Github.DefaultRepo
+			}
 
 			// no owner provided-- check config for owner
 			if strings.IndexByte(ownerRepo, '/') == -1 {

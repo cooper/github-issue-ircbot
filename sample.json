@@ -11,6 +11,7 @@
         "github": {
                 "token": "github auth token",
                 "defaultowner": "cooper",
+                "defaultrepo": "juno",
                 "projects": [
                         "cooper/juno",
                         "jlu5/PyLink"
