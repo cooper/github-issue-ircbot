@@ -18,9 +18,9 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
-var config = flag.String("config", "", "configuration file")
+var conf = flag.String("config", "", "configuration file")
 
-type Config struct {
+type config struct {
 
 	// actual config
 	Irc struct {
@@ -44,7 +44,7 @@ type Config struct {
 	ProjectsByRepoName map[string]string
 }
 
-func (c *Config) Load(filename string) error {
+func (c *config) load(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 
 	// I/O error
@@ -90,14 +90,14 @@ func (c *Config) Load(filename string) error {
 
 func main() {
 	flag.Parse()
-	if *config == "" {
+	if *conf == "" {
 		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "-config /path/to/config")
 		os.Exit(0)
 	}
 
-	c := &Config{ProjectsByRepoName: make(map[string]string)}
+	c := &config{ProjectsByRepoName: make(map[string]string)}
 
-	if err := c.Load(*config); err != nil {
+	if err := c.load(*conf); err != nil {
 		log.Fatal(err)
 	}
 
